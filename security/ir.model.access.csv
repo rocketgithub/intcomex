@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_intcomex_proteccion_precio_manager,intcomex.proteccion_precio.manager,intcomex.model_intcomex_proteccion_precio,sales_team.group_sale_manager,1,1,1,1

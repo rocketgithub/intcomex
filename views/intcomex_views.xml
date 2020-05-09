@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="intcomex_proteccion_precio_view_form" model="ir.ui.view">
+        <field name="name">intcomex.proteccion_precio.view.form</field>
+        <field name="model">intcomex.proteccion_precio</field>
+        <field name="arch" type="xml">
+            <form string="Protección de Precios">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="nombre"/>
+                            <field name="producto_id"/>
+                            <field name="tipo"/>
+                        </group>
+                        <group>
+                            <field name="lote_id"/>
+                            <field name="fecha_inicio"/>
+                            <field name="fecha_fin"/>
+                            <field name="precio"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="intcomex_proteccion_precio_view_tree" model="ir.ui.view">
+        <field name="name">intcomex.proteccion_precio.view.tree</field>
+        <field name="model">intcomex.proteccion_precio</field>
+        <field name="arch" type="xml">
+           <tree string="Protección de Precios">
+                <field name="nombre"/>
+                <field name="producto_id"/>
+                <field name="tipo"/>
+                <field name="lote_id"/>
+                <field name="fecha_inicio"/>
+                <field name="fecha_fin"/>
+                <field name="precio"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="act_intcomex_prorteccion_precio_view" model="ir.actions.act_window">
+        <field name="name">Protección de precios</field>
+        <field name="res_model">intcomex.proteccion_precio</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="intcomex_proteccion_precio_view_tree"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Nueva linea para Protección de Precios
+            </p>
+        </field>
+    </record>
+
+
+    <menuitem
+        id="menu_act_intcomex_prorteccion_precio"
+        name="Protección de precios"
+        action="act_intcomex_prorteccion_precio_view"
+        parent="sale.product_menu_catalog"
+        sequence="50"
+        />
+
+
+</odoo>

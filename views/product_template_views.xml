@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="intcomex_product_template_only_form_view" model="ir.ui.view">
+        <field name="name">intcomex.product.template.product.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='variants']" position="after">
+                <page name="proteccion_precios" string="Proteccion de Precios">
+                    <field name="proteccion_precio_ids">
+                        <tree string="Proteccion de Precios" editable="bottom">
+                            <field name="producto_id" invisible="1"/>
+                            <field name="nombre"/>
+                            <field name="tipo"/>
+                            <field name="lote_id"/>
+                            <field name="fecha_inicio"/>
+                            <field name="fecha_fin"/>
+                            <field name="precio"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
