@@ -19,6 +19,7 @@
     'data': [
         'views/product_template_views.xml',
         'views/intcomex_views.xml',
+        'wizard/generar_proteccion_precios_views.xml',
         'security/ir.model.access.csv',
     ],
 }

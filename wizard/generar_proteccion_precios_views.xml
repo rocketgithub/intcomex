@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record id="intcomex_generar_proteccion_precios_wizard_view" model="ir.ui.view">
+            <field name="name">Generar protección de precios</field>
+            <field name="model">intcomex.generar_proteccion_precios.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Generar protección de precios">
+                    <group>
+                        <group>
+                            <field name="fecha_inicio"/>
+                            <field name="fecha_fin"/>
+                        </group>
+                        <group>
+                            <field name="account_id"/>
+                            <field name="journal_id"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="crear_partida_contable" string="Generar protección de precios" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="intcomex_action_generar_proteccion_precios_wizard_view" model="ir.actions.act_window">
+            <field name="name">Generar protección de precios</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">intcomex.generar_proteccion_precios.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="intcomex_menu_generar_proteccion_precios_wizard"
+            name="Generar protección de precios"
+            parent="account.account_invoicing_menu"
+            action="intcomex_action_generar_proteccion_precios_wizard_view"
+            sequence="6"/>
+
+</odoo>
