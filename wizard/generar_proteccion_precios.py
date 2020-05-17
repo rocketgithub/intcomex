@@ -58,8 +58,10 @@ class IntcomexGenerarProteccionPreciosWizard(models.TransientModel):
                 for linea_proteccion in proteccion_precio_ids:
                     if linea_proteccion.tipo == 'proteccion':
                         precio = linea_proteccion.precio
+                        break
                     elif linea_proteccion.tipo == 'soi':
                         precio = linea_proteccion.precio
+                        break
                     else:
                         precio = linea_proteccion.precio
 
