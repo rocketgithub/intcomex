@@ -17,6 +17,7 @@
     'depends': ['sale','product'],
 
     'data': [
+        'views/account_move_views.xml',
         'views/product_template_views.xml',
         'views/intcomex_views.xml',
         'wizard/generar_proteccion_precios_views.xml',

@@ -20,26 +20,27 @@ class IntcomexGenerarProteccionPreciosWizard(models.TransientModel):
         cuenta_inventario_ids = {}
         #En este ciclo se crea un diccionario con todas las cuentas de inventario que serán utilizadas para crear la partida contable, y su respectiva sumatoria del monto.
         for factura in facturas:
-            logging.warn(factura)
-            logging.warn(factura._get_invoiced_lot_values())
+            logging.getLogger('Factura').warn(factura.name)
 #            factura.partida_intcomex = True
             for linea in factura.invoice_line_ids:
+                logging.getLogger('producto').warn(linea.product_id.name)
                 if not linea.product_id.categ_id:
                     raise UserError("El producto '" + linea.product_id.name + "' no tiene definida una categoría.")
                 if not linea.product_id.categ_id.property_stock_valuation_account_id:
                     raise UserError("La categoría de producto '" + linea.product_id.categ_id.name + "' no tiene definida una cuenta contable de inventario.")
 
-                monto_proteccion = self.obtener_proteccion(linea)
-                sale_orders = linea.mapped('sale_line_ids.order_id')
-                stock_move_lines = sale_orders.mapped('picking_ids.move_lines.move_line_ids')
-
-                if monto_proteccion > 0:
-                    if factura.type == 'out_refund':
-                        monto_proteccion *= -1
-
-                    if linea.product_id.categ_id.property_stock_valuation_account_id.id not in cuenta_inventario_ids:
-                        cuenta_inventario_ids[linea.product_id.categ_id.property_stock_valuation_account_id.id] = 0
-                    cuenta_inventario_ids[linea.product_id.categ_id.property_stock_valuation_account_id.id] += monto_proteccion
+                for proteccion in linea.obtener_proteccion(self.fecha_inicio, self.fecha_fin):
+                    logging.warn(proteccion)
+                    monto_proteccion = proteccion['proteccion_precio'] + proteccion['soi'] + proteccion['fondoscop']
+                    
+                    if monto_proteccion > 0:
+                        if linea.product_id.categ_id.property_stock_valuation_account_id.id not in cuenta_inventario_ids:
+                            cuenta_inventario_ids[linea.product_id.categ_id.property_stock_valuation_account_id.id] = 0
+                            
+                        if factura.type == 'out_invoice':
+                            cuenta_inventario_ids[linea.product_id.categ_id.property_stock_valuation_account_id.id] += monto_proteccion
+                        else:
+                            cuenta_inventario_ids[linea.product_id.categ_id.property_stock_valuation_account_id.id] -= monto_proteccion
 
         lineas_partida = []
         total = 0
@@ -74,7 +75,7 @@ class IntcomexGenerarProteccionPreciosWizard(models.TransientModel):
             dict['state'] = 'draft'
 
             dict['line_ids'] = lineas_partida
-
+#            logging.getLogger('PARTIDA').warn(dict)
             move = self.env['account.move'].create(dict)
             move.post()
 
