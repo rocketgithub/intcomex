@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record id="report_productos_provistos" model="ir.ui.view">
+            <field name="name">intcomex.reporte_productos_provistos</field>
+            <field name="model">intcomex.reporte_productos_provistos</field>
+            <field name="type">form</field>
+             <field name="arch" type="xml">
+                 <group>
+                    <field name="fecha_desde"/>
+                    <field name="fecha_hasta"/>
+                 </group>
+                <form>
+                    <group>
+                        <field name="name" invisible="1"/>
+                        <field name="archivo" readonly="1" filename="name"/>
+                    </group>
+                    <footer>
+                        <button name="print_report_excel" string="Reporte excel" type="object" class="oe_highlight"/>
+                        o
+                        <button special="cancel" string="Cancel" class="oe_link"/>
+                    </footer>
+                </form>
+            </field> 
+        </record>
+
+      <act_window id="window_reporte_productos_provistos" name="Reporte de Productos Provistos" binding_model="account.move.line" res_model="intcomex.reporte_productos_provistos" view_mode="form" target="new"/>
+      <menuitem action="window_reporte_productos_provistos" id="menu_reporte_productos_provistos" parent="account.menu_finance_reports"/> 
+        
+    
+    
+    <record id="report_ventas" model="ir.ui.view">
+            <field name="name">intcomex.reporte_ventas</field>
+            <field name="model">intcomex.reporte_ventas</field>
+            <field name="type">form</field>
+             <field name="arch" type="xml">
+                 <group>
+                    <field name="fecha_desde"/>
+                    <field name="fecha_hasta"/>
+                 </group>
+                <form>
+                    <group>
+                        <field name="name" invisible="1"/>
+                        <field name="archivo" readonly="1" filename="name"/>
+                    </group>
+                    <footer>
+                        <button name="print_report_excel" string="Reporte excel" type="object" class="oe_highlight"/>
+                        o
+                        <button special="cancel" string="Cancel" class="oe_link"/>
+                    </footer>
+                </form>
+            </field> 
+        </record>
+
+      <act_window id="window_reporte_ventas" name="Reporte de Ventas" binding_model="account.move.line" res_model="intcomex.reporte_ventas" view_mode="form" target="new"/>
+      <menuitem action="window_reporte_ventas" id="menu_reporte_ventas" parent="account.menu_finance_reports"/> 
+    
+    
+    
+    <record id="report_ingresos" model="ir.ui.view">
+            <field name="name">intcomex.reporte_ingresos</field>
+            <field name="model">intcomex.reporte_ingresos</field>
+            <field name="type">form</field>
+             <field name="arch" type="xml">
+                 <group>
+                    <field name="fecha_desde"/>
+                    <field name="fecha_hasta"/>
+                 </group>
+                <form>
+                    <group>
+                        <field name="name" invisible="1"/>
+                        <field name="archivo" readonly="1" filename="name"/>
+                    </group>
+                    <footer>
+                        <button name="print_report_excel" string="Reporte excel" type="object" class="oe_highlight"/>
+                        o
+                        <button special="cancel" string="Cancel" class="oe_link"/>
+                    </footer>
+                </form>
+            </field> 
+        </record>
+
+      <act_window id="window_reporte_ingresos" name="Reporte de Ingresos" binding_model="account.move.line" res_model="intcomex.reporte_ingresos" view_mode="form" target="new"/>
+      <menuitem action="window_reporte_ingresos" id="menu_reporte_ingresos" parent="account.menu_finance_reports"/>
+    
+</odoo>

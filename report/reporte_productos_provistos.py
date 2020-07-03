@@ -86,7 +86,7 @@ class ProductosProvistos(models.TransientModel):
                             y += 1
                             hoja.write(y, 0, linea.product_id.default_code)
                             hoja.write(y, 1, linea.product_id.name)
-                            hoja.write(y, 2, 'marca')
+                            hoja.write(y, 2, linea.product_id.marca)
                             hoja.write(y, 3, proteccion[0]['numero_serie'])
                             hoja.write(y, 4, costo_compra)
 

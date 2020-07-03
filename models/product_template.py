@@ -6,3 +6,4 @@ class ProductTemplate(models.Model):
     _inherit = "product.template"
 
     proteccion_precio_ids = fields.One2many('intcomex.proteccion_precio','producto_id','Proteccion de precio')
+    marca = fields.Char('Marca')
