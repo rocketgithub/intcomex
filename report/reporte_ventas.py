@@ -53,7 +53,7 @@ class ReporteVentas(models.TransientModel):
             hoja.write(0, 12, 'Price Protection', bold)
                 
             y = 0       
-            facturas = self.env['account.move'].search([('type', 'in', ['out_invoice']), ('state', '=', 'posted')])
+            facturas = self.env['account.move'].search([('type', 'in', ['out_invoice']), ('state', '=', 'posted'), ('date', '>=', w['fecha_desde']), ('date', '<=', w['fecha_hasta'])])
             
             for factura in facturas:
                 for linea in factura.invoice_line_ids:
