@@ -100,10 +100,9 @@ class ReporteVentas(models.TransientModel):
                     hoja.write(y, 8, lote_name)
                     hoja.write(y, 9, costo_compra)
                     hoja.write(y, 10, linea.price_unit)
-                    hoja.write(y, 11, (linea.price_unit - costo_compra) / linea.price_unit, porcentaje)
+                    hoja.write(y, 11, (linea.price_unit - costo_compra) / (linea.price_unit or 1), porcentaje)
                     hoja.write(y, 12, price_protection)
-            
-            
+                    
             libro.close()
             datos = base64.b64encode(f.getvalue())
             self.write({'archivo':datos, 'name':'reporte_ventas.xlsx'})
