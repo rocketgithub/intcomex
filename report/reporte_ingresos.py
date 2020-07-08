@@ -48,7 +48,7 @@ class ReporteIngresos(models.TransientModel):
             hoja.write(0, 8, 'Documento de origen', bold)
                 
             y = 0       
-            facturas = self.env['account.move'].search([('type', 'in', ['in_invoice']), ('state', '=', 'posted')])
+            facturas = self.env['account.move'].search([('type', 'in', ['in_invoice']), ('state', '=', 'posted'), ('date', '>=', w['fecha_desde']), ('date', '<=', w['fecha_hasta'])])
             
             for factura in facturas:
                 for linea in factura.invoice_line_ids:
