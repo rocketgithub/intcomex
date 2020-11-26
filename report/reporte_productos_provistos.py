@@ -31,19 +31,22 @@ class ProductosProvistos(models.TransientModel):
             libro = xlsxwriter.Workbook(f)
             hoja = libro.add_worksheet('Reporte')
             bold = libro.add_format({'bold': True})
+            date_format = libro.add_format({'num_format': 'dd/mm/yy'}) 
             merge_format = libro.add_format({
                 'align': 'center',
                 'valign': 'vcenter'
             })
             
             hoja.write(0, 0, 'SKU', bold)
-            hoja.write(0, 1, 'Descripción', bold)
-            hoja.write(0, 2, 'Marca', bold)
-            hoja.write(0, 3, 'Serie', bold)
-            hoja.write(0, 4, 'Costo de compra', bold)
-            hoja.write(0, 5, 'SOI', bold)
-            hoja.write(0, 6, 'Price Protection', bold)
-            hoja.write(0, 7, 'Fondos Coop', bold)
+            hoja.write(0, 1, 'Tienda', bold)
+            hoja.write(0, 2, 'Fecha', bold)
+            hoja.write(0, 3, 'Descripción', bold)
+            hoja.write(0, 4, 'Marca', bold)
+            hoja.write(0, 5, 'Serie', bold)
+            hoja.write(0, 6, 'Costo de compra', bold)
+            hoja.write(0, 7, 'SOI', bold)
+            hoja.write(0, 8, 'Price Protection', bold)
+            hoja.write(0, 9, 'Fondos Coop', bold)
                 
             y = 0       
             facturas = self.env['account.move'].search([('type', 'in', ['out_invoice']), ('state', '=', 'posted'), ('date', '>=', w['fecha_desde']), ('date', '<=', w['fecha_hasta'])])
@@ -64,41 +67,51 @@ class ProductosProvistos(models.TransientModel):
             for factura in facturas:
                 for linea in factura.invoice_line_ids:
                     proteccion = linea.obtener_proteccion(w['fecha_desde'], w['fecha_hasta'])
-                    if proteccion:
-                        if proteccion[0]['soi'] > 0 or proteccion[0]['proteccion_precio'] > 0 or proteccion[0]['fondoscop'] > 0:
+#                    if proteccion:
+#                    if proteccion[0]['soi'] > 0 or proteccion[0]['proteccion_precio'] > 0 or proteccion[0]['fondoscop'] > 0:
+                    lote_ids = linea.obtener_lotes()
+                    if lote_ids:
+                        for lote in lote_ids:
+                            lote_name = lote.name
+
                             #Se calcula costo de compra
                             costo_compra = 0
-                            lote_id = self.env['stock.production.lot'].search([('name','=',proteccion[0]['numero_serie'])])
-                            move_line =  self.env['stock.move.line'].search([('lot_id','=',lote_id.id)])
-                            if move_line:
-                                ml = []
-                                for m in move_line:
-                                    ml.append(m.move_id.id)
-                                    if ml:
-                                        move = self.env['stock.move'].search([('id','in',ml)])
-                                        if move:
-                                            for m in move:
-                                                if m.price_unit > 0:
-                                                    costo_compra = m.price_unit
-                                                else:
-                                                    costo_compra = linea.product_id.standard_price
-                            
-                            y += 1
-                            hoja.write(y, 0, linea.product_id.default_code)
-                            hoja.write(y, 1, linea.product_id.name)
-                            hoja.write(y, 2, linea.product_id.marca)
-                            hoja.write(y, 3, proteccion[0]['numero_serie'])
-                            hoja.write(y, 4, costo_compra)
+                            if proteccion:
+                                lote_id = self.env['stock.production.lot'].search([('name','=',proteccion[0]['numero_serie'])])
+                                lote_name = proteccion[0]['numero_serie']
+                            else:
+                                lote_id = lote
+                                lote_name = lote.name
 
-                            hoja.write(y, 5, proteccion[0]['soi'])
-                            hoja.write(y, 6, proteccion[0]['proteccion_precio'])
-                            hoja.write(y, 7, proteccion[0]['fondoscop'])
+                            costo_compra = 0
+                            stock_move_line_id = self.env['stock.move.line'].search([('lot_id', '=', lote.id), ('move_id.picking_id.purchase_id', '!=', None), ('move_id.product_id', '=', linea.product_id.id)])
+                            if stock_move_line_id:
+                                linea_compra = self.env['purchase.order.line'].search([('order_id.id', '=', stock_move_line_id[0].move_id.picking_id.purchase_id.id), ('product_id', '=', linea.product_id.id)])
+                                if linea_compra:
+                                    costo_compra = linea_compra[0].price_unit
+                    else:
+                        lote_name = ""
+                        costo_compra = 0
 
-                            datos['totales']['costo_compra'] += costo_compra
-                            datos['totales']['proteccion_precio'] += proteccion[0]['proteccion_precio']
-                            datos['totales']['soi'] += proteccion[0]['soi']
-                            datos['totales']['fondoscop'] += proteccion[0]['fondoscop']
-            
+
+                    y += 1
+                    hoja.write(y, 0, linea.product_id.default_code)
+                    hoja.write(y, 1, factura.invoice_origin)
+                    hoja.write(y, 2, factura.invoice_date, date_format)
+                    hoja.write(y, 3, linea.product_id.name)
+                    hoja.write(y, 4, linea.product_id.marca)
+                    hoja.write(y, 5, lote_name)
+                    hoja.write(y, 6, costo_compra)
+
+                    hoja.write(y, 7, proteccion[0]['soi'] if proteccion else 0)
+                    hoja.write(y, 8, proteccion[0]['proteccion_precio'] if proteccion else 0)
+                    hoja.write(y, 9, proteccion[0]['fondoscop'] if proteccion else 0)
+
+                    datos['totales']['costo_compra'] += costo_compra
+                    datos['totales']['proteccion_precio'] += proteccion[0]['proteccion_precio'] if proteccion else 0
+                    datos['totales']['soi'] += proteccion[0]['soi'] if proteccion else 0
+                    datos['totales']['fondoscop'] += proteccion[0]['fondoscop'] if proteccion else 0
+
             y += 1
             hoja.write(y, 3, 'Subtotal', bold)
             hoja.write(y, 4, datos['totales']['costo_compra'])
