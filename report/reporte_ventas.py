@@ -70,24 +70,16 @@ class ReporteVentas(models.TransientModel):
                         for lote in lote_ids:
                             lote_name = lote.name
                             
-                            #Se calcula costo de compra
                             costo_compra = 0
-                            move_line =  self.env['stock.move.line'].search([('lot_id','=',lote.id)])
-                            if move_line:
-                                ml = []
-                                for m in move_line:
-                                    ml.append(m.move_id.id)
-                                    if ml:
-                                        move = self.env['stock.move'].search([('id','in',ml)])
-                                        if move:
-                                            for m in move:
-                                                if m.price_unit > 0:
-                                                    costo_compra = m.price_unit
-                                                else:
-                                                    costo_compra = linea.product_id.standard_price
+                            stock_move_line_id = self.env['stock.move.line'].search([('lot_id', '=', lote.id), ('move_id.picking_id.purchase_id', '!=', None), ('move_id.product_id', '=', linea.product_id.id)])
+                            if stock_move_line_id:
+                                linea_compra = self.env['purchase.order.line'].search([('order_id.id', '=', stock_move_line_id[0].move_id.picking_id.purchase_id.id), ('product_id', '=', linea.product_id.id)])
+                                if linea_compra:
+                                    costo_compra = linea_compra[0].price_unit
+
                     else:
                         lote_name = ""
-                        costo_compra = linea.product_id.standard_price
+                        costo_compra = 0
                         
                     hoja.write(y, 0, linea.product_id.default_code)
                     hoja.write(y, 1, linea.product_id.name)
