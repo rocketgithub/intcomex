@@ -43,7 +43,7 @@ class AccountMoveLine(models.Model):
     def obtener_proteccion(self, fecha_inicio, fecha_fin):
         # Se busca protección de precios perteneciente al producto de la linea facturada
         res = []
-        proteccion_precio_ids = self.env['intcomex.proteccion_precio'].search([('producto_id','=',self.product_id.product_tmpl_id.id),('fecha_inicio','>=', fecha_inicio), ('fecha_fin', '<=', fecha_fin)])
+        proteccion_precio_ids = self.env['intcomex.proteccion_precio'].search([('producto_id','=',self.product_id.product_tmpl_id.id),('fecha_inicio','<=', fecha_inicio), ('fecha_fin', '>=', fecha_fin)])
         if proteccion_precio_ids:
             logging.warn('ENTRA')
 
