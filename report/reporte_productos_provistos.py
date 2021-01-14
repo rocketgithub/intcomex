@@ -66,7 +66,7 @@ class ProductosProvistos(models.TransientModel):
             
             for factura in facturas:
                 for linea in factura.invoice_line_ids:
-                    proteccion = linea.obtener_proteccion(w['fecha_desde'], w['fecha_hasta'])
+                    proteccion = linea.obtener_proteccion(factura.invoice_date, factura.invoice_date)
 #                    if proteccion:
 #                    if proteccion[0]['soi'] > 0 or proteccion[0]['proteccion_precio'] > 0 or proteccion[0]['fondoscop'] > 0:
                     lote_ids = linea.obtener_lotes()

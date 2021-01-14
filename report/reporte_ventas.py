@@ -59,7 +59,7 @@ class ReporteVentas(models.TransientModel):
                 for linea in factura.invoice_line_ids:
                     y += 1
                     
-                    proteccion = linea.obtener_proteccion(w['fecha_desde'], w['fecha_hasta'])
+                    proteccion = linea.obtener_proteccion(factura.invoice_date, factura.invoice_date)
                     if proteccion:
                         price_protection =  proteccion[0]['soi'] + proteccion[0]['proteccion_precio'] + proteccion[0]['fondoscop']
                     else:
