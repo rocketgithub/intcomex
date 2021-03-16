@@ -10,7 +10,7 @@ class AccountMove(models.Model):
     tipo_nota = fields.Selection(selection=[
             ('proteccion','Price protection'),
             ('soi','Sell out incentive'),
-            ('fondo','Fondos coop'), 
+            ('fondo','Fondos coop'),
         ], string='Tipo de nota')
 
 class AccountMoveLine(models.Model):
@@ -38,7 +38,7 @@ class AccountMoveLine(models.Model):
                                 lote_ids.append(lote_id)
 
         return lote_ids
-    
+
     # Retorna un diccionario separado por los tipos de proteccion con su respectivo valor
     def obtener_proteccion(self, fecha_inicio, fecha_fin):
         # Se busca protección de precios perteneciente al producto de la linea facturada
@@ -65,6 +65,8 @@ class AccountMoveLine(models.Model):
                         if  lote.id == linea_proteccion.lote_id.id and (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] > 0 or precios['fondoscop'] > 0)):
                             continue
                         elif lote.id == linea_proteccion.lote_id.id and (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] == 0 or precios['fondoscop'] == 0)):
+                            precios['soi'] += linea_proteccion.precio
+                        elif len(linea_proteccion.lote_id) == 0 and (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] == 0 or precios['fondoscop'] == 0)):
                             precios['soi'] += linea_proteccion.precio
                         else:
                             continue

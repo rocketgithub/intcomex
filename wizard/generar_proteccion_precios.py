@@ -32,11 +32,11 @@ class IntcomexGenerarProteccionPreciosWizard(models.TransientModel):
                 for proteccion in linea.obtener_proteccion(self.fecha_inicio, self.fecha_fin):
                     logging.warn(proteccion)
                     monto_proteccion = proteccion['proteccion_precio'] + proteccion['soi'] + proteccion['fondoscop']
-                    
+
                     if monto_proteccion > 0:
                         if linea.product_id.categ_id.property_stock_valuation_account_id.id not in cuenta_inventario_ids:
                             cuenta_inventario_ids[linea.product_id.categ_id.property_stock_valuation_account_id.id] = 0
-                            
+
                         if factura.type == 'out_invoice':
                             cuenta_inventario_ids[linea.product_id.categ_id.property_stock_valuation_account_id.id] += monto_proteccion
                         else:
