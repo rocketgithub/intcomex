@@ -53,47 +53,39 @@ class ReporteVentas(models.TransientModel):
             hoja.write(0, 12, 'Price Protection', bold)
                 
             y = 0       
-            facturas = self.env['account.move'].search([('type', 'in', ['out_invoice']), ('state', '=', 'posted'), ('date', '>=', w['fecha_desde']), ('date', '<=', w['fecha_hasta'])])
+            facturas = self.env['account.move'].search([('type', 'in', ['out_invoice', 'out_refund']), ('state', '=', 'posted'), ('date', '>=', w['fecha_desde']), ('date', '<=', w['fecha_hasta'])])
             
             for factura in facturas:
                 for linea in factura.invoice_line_ids:
                     y += 1
-                    
-                    proteccion = linea.obtener_proteccion(factura.invoice_date, factura.invoice_date)
-                    if proteccion:
-                        price_protection =  proteccion[0]['soi'] + proteccion[0]['proteccion_precio'] + proteccion[0]['fondoscop']
+                    protecciones = linea.obtener_proteccion(factura.invoice_date, factura.invoice_date)
+                    if protecciones:
+                        for proteccion in protecciones:
+                            if proteccion['numero_serie'] == linea.lot_id.name:
+                                price_protection =  proteccion['soi'] + proteccion['proteccion_precio'] + proteccion['fondoscop']
                     else:
                         price_protection = 0
-                    
-                    lote_ids = linea.obtener_lotes()
-                    if lote_ids:
-                        for lote in lote_ids:
-                            lote_name = lote.name
                             
-                            costo_compra = 0
-                            stock_move_line_id = self.env['stock.move.line'].search([('lot_id', '=', lote.id), ('move_id.picking_id.purchase_id', '!=', None), ('move_id.product_id', '=', linea.product_id.id)])
-                            if stock_move_line_id:
-                                linea_compra = self.env['purchase.order.line'].search([('order_id.id', '=', stock_move_line_id[0].move_id.picking_id.purchase_id.id), ('product_id', '=', linea.product_id.id)])
-                                if linea_compra:
-                                    costo_compra = linea_compra[0].price_unit
-
-                    else:
-                        lote_name = ""
-                        costo_compra = 0
-                        
+                    costo_compra = 0
+                    stock_move_line_id = self.env['stock.move.line'].search([('lot_id', '=', linea.lot_id.id), ('move_id.picking_id.purchase_id', '!=', None), ('move_id.product_id', '=', linea.product_id.id)])
+                    if stock_move_line_id:
+                        linea_compra = self.env['purchase.order.line'].search([('order_id.id', '=', stock_move_line_id[0].move_id.picking_id.purchase_id.id), ('product_id', '=', linea.product_id.id)])
+                        if linea_compra:
+                            costo_compra = linea_compra[0].price_unit
+                            
                     hoja.write(y, 0, linea.product_id.default_code)
                     hoja.write(y, 1, linea.product_id.name)
-                    hoja.write(y, 2, factura.invoice_origin)
+                    hoja.write(y, 2, stock_move_line_id[0].move_id.warehouse_id.name or '')
                     hoja.write(y, 3, linea.quantity)
                     hoja.write(y, 4, factura.invoice_date, date_format)
                     hoja.write(y, 5, factura.firma_fel)
                     hoja.write(y, 6, linea.product_id.marca)
                     hoja.write(y, 7, linea.product_id.categ_id.name)
-                    hoja.write(y, 8, lote_name)
+                    hoja.write(y, 8, linea.lot_id.name)
                     hoja.write(y, 9, costo_compra)
                     hoja.write(y, 10, linea.price_unit)
                     hoja.write(y, 11, (linea.price_unit - costo_compra) / (linea.price_unit or 1), porcentaje)
-                    hoja.write(y, 12, price_protection)
+                    hoja.write(y, 12, price_protection)             
                     
             libro.close()
             datos = base64.b64encode(f.getvalue())

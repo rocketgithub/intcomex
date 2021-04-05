@@ -66,58 +66,50 @@ class ProductosProvistos(models.TransientModel):
             
             for factura in facturas:
                 for linea in factura.invoice_line_ids:
-                    proteccion = linea.obtener_proteccion(factura.invoice_date, factura.invoice_date)
-#                    if proteccion:
-#                    if proteccion[0]['soi'] > 0 or proteccion[0]['proteccion_precio'] > 0 or proteccion[0]['fondoscop'] > 0:
-                    lote_ids = linea.obtener_lotes()
-                    if lote_ids:
-                        for lote in lote_ids:
-                            lote_name = lote.name
+                    protecciones = linea.obtener_proteccion(factura.invoice_date, factura.invoice_date)
+                    soi = 0
+                    pp = 0
+                    fondos = 0
+                    if protecciones:
+                        for proteccion in protecciones:
+                            if proteccion['numero_serie'] == linea.lot_id.name:
+                                soi = proteccion['soi']
+                                pp = proteccion['proteccion_precio']
+                                fondos = proteccion['fondoscop']
+                            
 
-                            #Se calcula costo de compra
-                            costo_compra = 0
-                            if proteccion:
-                                lote_id = self.env['stock.production.lot'].search([('name','=',proteccion[0]['numero_serie'])])
-                                lote_name = proteccion[0]['numero_serie']
-                            else:
-                                lote_id = lote
-                                lote_name = lote.name
-
-                            costo_compra = 0
-                            stock_move_line_id = self.env['stock.move.line'].search([('lot_id', '=', lote.id), ('move_id.picking_id.purchase_id', '!=', None), ('move_id.product_id', '=', linea.product_id.id)])
-                            if stock_move_line_id:
-                                linea_compra = self.env['purchase.order.line'].search([('order_id.id', '=', stock_move_line_id[0].move_id.picking_id.purchase_id.id), ('product_id', '=', linea.product_id.id)])
-                                if linea_compra:
-                                    costo_compra = linea_compra[0].price_unit
-                    else:
-                        lote_name = ""
-                        costo_compra = 0
+                    costo_compra = 0
+                    stock_move_line_id = self.env['stock.move.line'].search([('lot_id', '=', linea.lot_id.id), ('move_id.picking_id.purchase_id', '!=', None), ('move_id.product_id', '=', linea.product_id.id)])
+                    if stock_move_line_id:
+                        linea_compra = self.env['purchase.order.line'].search([('order_id.id', '=', stock_move_line_id[0].move_id.picking_id.purchase_id.id), ('product_id', '=', linea.product_id.id)])
+                        if linea_compra:
+                            costo_compra = linea_compra[0].price_unit
 
 
                     y += 1
                     hoja.write(y, 0, linea.product_id.default_code)
-                    hoja.write(y, 1, factura.invoice_origin)
+                    hoja.write(y, 1, stock_move_line_id[0].move_id.warehouse_id.name or '')
                     hoja.write(y, 2, factura.invoice_date, date_format)
                     hoja.write(y, 3, linea.product_id.name)
                     hoja.write(y, 4, linea.product_id.marca)
-                    hoja.write(y, 5, lote_name)
+                    hoja.write(y, 5, linea.lot_id.name)
                     hoja.write(y, 6, costo_compra)
 
-                    hoja.write(y, 7, proteccion[0]['soi'] if proteccion else 0)
-                    hoja.write(y, 8, proteccion[0]['proteccion_precio'] if proteccion else 0)
-                    hoja.write(y, 9, proteccion[0]['fondoscop'] if proteccion else 0)
+                    hoja.write(y, 7, soi)
+                    hoja.write(y, 8, pp)
+                    hoja.write(y, 9, fondos)
 
                     datos['totales']['costo_compra'] += costo_compra
-                    datos['totales']['proteccion_precio'] += proteccion[0]['proteccion_precio'] if proteccion else 0
-                    datos['totales']['soi'] += proteccion[0]['soi'] if proteccion else 0
-                    datos['totales']['fondoscop'] += proteccion[0]['fondoscop'] if proteccion else 0
+                    datos['totales']['proteccion_precio'] += pp
+                    datos['totales']['soi'] += soi
+                    datos['totales']['fondoscop'] += fondos
 
             y += 1
-            hoja.write(y, 3, 'Subtotal', bold)
-            hoja.write(y, 4, datos['totales']['costo_compra'])
-            hoja.write(y, 5, datos['totales']['soi'])
-            hoja.write(y, 6, datos['totales']['proteccion_precio'])
-            hoja.write(y, 7, datos['totales']['fondoscop'])
+            hoja.write(y, 5, 'Subtotal', bold)
+            hoja.write(y, 6, datos['totales']['costo_compra'])
+            hoja.write(y, 7, datos['totales']['soi'])
+            hoja.write(y, 8, datos['totales']['proteccion_precio'])
+            hoja.write(y, 9, datos['totales']['fondoscop'])
 
             dias_restar = relativedelta(days=7)
             dia_desde = w['fecha_desde'] - dias_restar
