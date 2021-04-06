@@ -29,7 +29,7 @@ class IntcomexGenerarProteccionPreciosWizard(models.TransientModel):
                 if not linea.product_id.categ_id.property_stock_valuation_account_id:
                     raise UserError("La categoría de producto '" + linea.product_id.categ_id.name + "' no tiene definida una cuenta contable de inventario.")
 
-                for proteccion in linea.obtener_proteccion(factura.invoice_date):
+                for proteccion in linea.obtener_proteccion():
                     logging.warn(proteccion)
                     monto_proteccion = proteccion['proteccion_precio'] + proteccion['soi'] + proteccion['fondoscop']
 
