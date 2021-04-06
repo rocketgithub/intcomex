@@ -16,7 +16,7 @@ class IntcomexGenerarProteccionPreciosWizard(models.TransientModel):
 
     def crear_partida_contable(self):
 
-        facturas = self.env['account.move'].search([('type', 'in', ['out_invoice', 'out_refund']), ('state', '=', 'posted'), ('date', '>=', self.fecha_inicio), ('date', '<=', self.fecha_fin), ('partida_intcomex', '!=', True)])
+        facturas = self.env['account.move'].search([('type', 'in', ['out_invoice', 'out_refund']), ('state', '=', 'posted'), ('invoice_date', '>=', self.fecha_inicio), ('invoice_date', '<=', self.fecha_fin), ('partida_intcomex', '!=', True)])
         cuenta_inventario_ids = {}
         #En este ciclo se crea un diccionario con todas las cuentas de inventario que serán utilizadas para crear la partida contable, y su respectiva sumatoria del monto.
         for factura in facturas:
@@ -29,7 +29,7 @@ class IntcomexGenerarProteccionPreciosWizard(models.TransientModel):
                 if not linea.product_id.categ_id.property_stock_valuation_account_id:
                     raise UserError("La categoría de producto '" + linea.product_id.categ_id.name + "' no tiene definida una cuenta contable de inventario.")
 
-                for proteccion in linea.obtener_proteccion(self.fecha_inicio, self.fecha_fin):
+                for proteccion in linea.obtener_proteccion(factura.invoice_date):
                     logging.warn(proteccion)
                     monto_proteccion = proteccion['proteccion_precio'] + proteccion['soi'] + proteccion['fondoscop']
 
