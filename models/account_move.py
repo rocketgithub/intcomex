@@ -40,53 +40,55 @@ class AccountMoveLine(models.Model):
         return lote_ids
 
     # Retorna un diccionario separado por los tipos de proteccion con su respectivo valor
-    def obtener_proteccion(self, fecha_inicio, fecha_fin):
-        # Se busca protección de precios perteneciente al producto de la linea facturada
+    def obtener_proteccion(self):
+        # Se busca protección de precios perteneciente al producto de la linea y fecha facturada
         res = []
-        proteccion_precio_ids = self.env['intcomex.proteccion_precio'].search([('producto_id','=',self.product_id.product_tmpl_id.id),('fecha_inicio','<=', fecha_inicio), ('fecha_fin', '>=', fecha_fin)])
-        if proteccion_precio_ids:
-            logging.warn('ENTRA')
+        if self.move_id and self.move_id.invoice_date:
+            proteccion_precio_ids = self.env['intcomex.proteccion_precio'].search([('producto_id','=',self.product_id.product_tmpl_id.id),('fecha_inicio','<=', self.move_id.invoice_date), ('fecha_fin', '>=', self.move_id.invoice_date)], limit=1)
+            logging.warn(proteccion_precio_ids)
+            if proteccion_precio_ids:
+                logging.warn('ENTRA')
 
-            lote_ids = self.obtener_lotes()
+                lote_ids = self.obtener_lotes()
 
-            if lote_ids:
-                for lote in lote_ids:
-                    precios = {'numero_serie': lote.name, 'proteccion_precio': 0, 'soi': 0, 'fondoscop': 0}
-                    # Buscamos si existe alguna linea con numero de serie de tipo proteccion de precio o fondoscop para hacer las validaciones
+                if lote_ids:
+                    for lote in lote_ids:
+                        precios = {'numero_serie': lote.name, 'proteccion_precio': 0, 'soi': 0, 'fondoscop': 0}
+                        # Buscamos si existe alguna linea con numero de serie de tipo proteccion de precio o fondoscop para hacer las validaciones
+                        for linea_proteccion in proteccion_precio_ids:
+                            if lote.id == linea_proteccion.lote_id.id and linea_proteccion.tipo == 'proteccion':
+                                precios['proteccion_precio'] += linea_proteccion.precio
+                            elif lote.id == linea_proteccion.lote_id.id and linea_proteccion.tipo == 'fondo':
+                                precios['fondoscop'] += linea_proteccion.precio
+                            else:
+                                continue
+
+                        for linea_proteccion in proteccion_precio_ids:
+                            if  lote.id == linea_proteccion.lote_id.id and (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] > 0 or precios['fondoscop'] > 0)):
+                                continue
+                            elif lote.id == linea_proteccion.lote_id.id and (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] == 0 or precios['fondoscop'] == 0)):
+                                precios['soi'] += linea_proteccion.precio
+                            elif len(linea_proteccion.lote_id) == 0 and (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] == 0 or precios['fondoscop'] == 0)):
+                                precios['soi'] += linea_proteccion.precio
+                            else:
+                                continue
+                        res.append(precios)
+                else:
+                    precios = {'numero_serie': '', 'proteccion_precio': 0, 'soi': 0, 'fondoscop': 0}
+                    # Buscamos si existe alguna linea sin numero de serie de tipo proteccion de precio o fondoscop para hacer las validaciones
                     for linea_proteccion in proteccion_precio_ids:
-                        if lote.id == linea_proteccion.lote_id.id and linea_proteccion.tipo == 'proteccion':
+                        if linea_proteccion.tipo == 'proteccion':
                             precios['proteccion_precio'] += linea_proteccion.precio
-                        elif lote.id == linea_proteccion.lote_id.id and linea_proteccion.tipo == 'fondo':
+                        elif linea_proteccion.tipo == 'fondo':
                             precios['fondoscop'] += linea_proteccion.precio
                         else:
                             continue
-
                     for linea_proteccion in proteccion_precio_ids:
-                        if  lote.id == linea_proteccion.lote_id.id and (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] > 0 or precios['fondoscop'] > 0)):
+                        if  (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] > 0 or precios['fondoscop'] > 0)):
                             continue
-                        elif lote.id == linea_proteccion.lote_id.id and (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] == 0 or precios['fondoscop'] == 0)):
-                            precios['soi'] += linea_proteccion.precio
-                        elif len(linea_proteccion.lote_id) == 0 and (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] == 0 or precios['fondoscop'] == 0)):
+                        elif (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] == 0 or precios['fondoscop'] == 0)):
                             precios['soi'] += linea_proteccion.precio
                         else:
                             continue
                     res.append(precios)
-            else:
-                precios = {'numero_serie': '', 'proteccion_precio': 0, 'soi': 0, 'fondoscop': 0}
-                # Buscamos si existe alguna linea sin numero de serie de tipo proteccion de precio o fondoscop para hacer las validaciones
-                for linea_proteccion in proteccion_precio_ids:
-                    if linea_proteccion.tipo == 'proteccion':
-                        precios['proteccion_precio'] += linea_proteccion.precio
-                    elif linea_proteccion.tipo == 'fondo':
-                        precios['fondoscop'] += linea_proteccion.precio
-                    else:
-                        continue
-                for linea_proteccion in proteccion_precio_ids:
-                    if  (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] > 0 or precios['fondoscop'] > 0)):
-                        continue
-                    elif (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] == 0 or precios['fondoscop'] == 0)):
-                        precios['soi'] += linea_proteccion.precio
-                    else:
-                        continue
-                res.append(precios)
         return res
