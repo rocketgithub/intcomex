@@ -34,7 +34,7 @@ class AccountMoveLine(models.Model):
                     if linea_orden.product_id == self.product_id:
                         if linea_orden.pack_lot_ids:
                             for linea_lote in linea_orden.pack_lot_ids:
-                                lote_id = self.env['stock.production.lot'].search([('name','=',linea_lote.lot_name)])
+                                lote_id = self.env['stock.production.lot'].search([('name','=',linea_lote.lot_name),('product_id','=',linea_orden.product_id.id)], limit=1)
                                 lote_ids.append(lote_id)
 
         return lote_ids
@@ -44,13 +44,10 @@ class AccountMoveLine(models.Model):
         # Se busca protección de precios perteneciente al producto de la linea y fecha facturada
         res = []
         if self.move_id and self.move_id.invoice_date:
-            proteccion_precio_ids = self.env['intcomex.proteccion_precio'].search([('producto_id','=',self.product_id.product_tmpl_id.id),('fecha_inicio','<=', self.move_id.invoice_date), ('fecha_fin', '>=', self.move_id.invoice_date)], limit=1)
+            proteccion_precio_ids = self.env['intcomex.proteccion_precio'].search([('producto_id','=',self.product_id.product_tmpl_id.id),('fecha_inicio','<=', self.move_id.invoice_date), ('fecha_fin', '>=', self.move_id.invoice_date)])
             logging.warn(proteccion_precio_ids)
             if proteccion_precio_ids:
-                logging.warn('ENTRA')
-
                 lote_ids = self.obtener_lotes()
-
                 if lote_ids:
                     for lote in lote_ids:
                         precios = {'numero_serie': lote.name, 'proteccion_precio': 0, 'soi': 0, 'fondoscop': 0}
