@@ -13,3 +13,4 @@ class IntcomexProteccionPrecio(models.Model):
     lote_id = fields.Many2one('stock.production.lot',string='Lote')
     tipo = fields.Selection([ ('proteccion','Price protection'), ('soi','Sell out incentive'), ('fondo','Fondos coop') ], 'Tipo')
     precio = fields.Float('Precio')
+    
