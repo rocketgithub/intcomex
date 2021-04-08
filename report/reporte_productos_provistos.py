@@ -20,7 +20,6 @@ class ProductosProvistos(models.TransientModel):
     name = fields.Char('Nombre archivo')
     archivo = fields.Binary('Archivo')
     
-    
     def print_report_excel(self):
         for w in self:
             dict = {}
@@ -66,33 +65,34 @@ class ProductosProvistos(models.TransientModel):
             
             for factura in facturas:
                 for linea in factura.invoice_line_ids:
-                    protecciones = linea.obtener_proteccion(factura.invoice_date, factura.invoice_date)
+                    lote_linea = ''
+                    if linea.sale_line_ids and linea.sale_line_ids.move_ids[0] and linea.sale_line_ids.move_ids[0].move_line_ids[0].lot_id:
+                        lote_linea = linea.sale_line_ids.move_ids[0].move_line_ids[0].lot_id.name
+                    protecciones = linea.obtener_proteccion()
                     soi = 0
                     pp = 0
                     fondos = 0
                     if protecciones:
                         for proteccion in protecciones:
-                            if proteccion['numero_serie'] == linea.lot_id.name:
+                            if proteccion['numero_serie'] == lote_linea:
                                 soi = proteccion['soi']
                                 pp = proteccion['proteccion_precio']
                                 fondos = proteccion['fondoscop']
                             
-
                     costo_compra = 0
-                    stock_move_line_id = self.env['stock.move.line'].search([('lot_id', '=', linea.lot_id.id), ('move_id.picking_id.purchase_id', '!=', None), ('move_id.product_id', '=', linea.product_id.id)])
+                    stock_move_line_id = self.env['stock.move.line'].search([('lot_id', '=', lote_linea), ('move_id.picking_id.purchase_id', '!=', None), ('move_id.product_id', '=', linea.product_id.id)])
                     if stock_move_line_id:
                         linea_compra = self.env['purchase.order.line'].search([('order_id.id', '=', stock_move_line_id[0].move_id.picking_id.purchase_id.id), ('product_id', '=', linea.product_id.id)])
                         if linea_compra:
                             costo_compra = linea_compra[0].price_unit
 
-
                     y += 1
                     hoja.write(y, 0, linea.product_id.default_code)
-                    hoja.write(y, 1, stock_move_line_id[0].move_id.warehouse_id.name or '')
+                    hoja.write(y, 1, stock_move_line_id[0].move_id.warehouse_id.name if stock_move_line_id else '')
                     hoja.write(y, 2, factura.invoice_date, date_format)
                     hoja.write(y, 3, linea.product_id.name)
                     hoja.write(y, 4, linea.product_id.marca)
-                    hoja.write(y, 5, linea.lot_id.name)
+                    hoja.write(y, 5, lote_linea)
                     hoja.write(y, 6, costo_compra)
 
                     hoja.write(y, 7, soi)

@@ -16,8 +16,6 @@ class AccountMove(models.Model):
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
     
-    lot_id = fields.Many2one('stock.production.lot', 'Lot')
-
     def obtener_lotes(self):
         # Se busca la venta perteneciente a la linea factura y el numero de serie en caso lo contenga
         lote_ids = []

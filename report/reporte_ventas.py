@@ -58,16 +58,20 @@ class ReporteVentas(models.TransientModel):
             for factura in facturas:
                 for linea in factura.invoice_line_ids:
                     y += 1
-                    protecciones = linea.obtener_proteccion(factura.invoice_date, factura.invoice_date)
+                    lote_linea = ''
+                    if linea.sale_line_ids and linea.sale_line_ids.move_ids[0] and linea.sale_line_ids.move_ids[0].move_line_ids[0].lot_id:
+                        lote_linea = linea.sale_line_ids.move_ids[0].move_line_ids[0].lot_id.name
+                        
+                    protecciones = linea.obtener_proteccion()
                     if protecciones:
                         for proteccion in protecciones:
-                            if proteccion['numero_serie'] == linea.lot_id.name:
+                            if proteccion['numero_serie'] == lote_linea:
                                 price_protection =  proteccion['soi'] + proteccion['proteccion_precio'] + proteccion['fondoscop']
                     else:
                         price_protection = 0
                             
                     costo_compra = 0
-                    stock_move_line_id = self.env['stock.move.line'].search([('lot_id', '=', linea.lot_id.id), ('move_id.picking_id.purchase_id', '!=', None), ('move_id.product_id', '=', linea.product_id.id)])
+                    stock_move_line_id = self.env['stock.move.line'].search([('lot_id', '=', lote_linea), ('move_id.picking_id.purchase_id', '!=', None), ('move_id.product_id', '=', linea.product_id.id)])
                     if stock_move_line_id:
                         linea_compra = self.env['purchase.order.line'].search([('order_id.id', '=', stock_move_line_id[0].move_id.picking_id.purchase_id.id), ('product_id', '=', linea.product_id.id)])
                         if linea_compra:
@@ -75,13 +79,13 @@ class ReporteVentas(models.TransientModel):
                             
                     hoja.write(y, 0, linea.product_id.default_code)
                     hoja.write(y, 1, linea.product_id.name)
-                    hoja.write(y, 2, stock_move_line_id[0].move_id.warehouse_id.name or '')
+                    hoja.write(y, 2, stock_move_line_id[0].move_id.warehouse_id.name if stock_move_line_id else '')
                     hoja.write(y, 3, linea.quantity)
                     hoja.write(y, 4, factura.invoice_date, date_format)
-                    hoja.write(y, 5, factura.firma_fel)
+#                    hoja.write(y, 5, factura.firma_fel)
                     hoja.write(y, 6, linea.product_id.marca)
                     hoja.write(y, 7, linea.product_id.categ_id.name)
-                    hoja.write(y, 8, linea.lot_id.name)
+                    hoja.write(y, 8, lote_linea)
                     hoja.write(y, 9, costo_compra)
                     hoja.write(y, 10, linea.price_unit)
                     hoja.write(y, 11, (linea.price_unit - costo_compra) / (linea.price_unit or 1), porcentaje)
