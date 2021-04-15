@@ -62,13 +62,17 @@ class ReporteVentas(models.TransientModel):
                     if linea.sale_line_ids and linea.sale_line_ids.move_ids[0] and linea.sale_line_ids.move_ids[0].move_line_ids[0].lot_id:
                         lote_linea = linea.sale_line_ids.move_ids[0].move_line_ids[0].lot_id.name
                         
+                    if factura.pos_order_ids:
+                        for pos_line in factura.pos_order_ids[0].lines:
+                            if pos_line.pack_lot_ids and pos_line.product_id.id == linea.product_id.id and pos_line.qty == linea.quantity and pos_line.price_unit == linea.price_unit:
+                                lote_linea = pos_line.pack_lot_ids[0].lot_name
+                          
                     protecciones = linea.obtener_proteccion()
+                    price_protection = 0
                     if protecciones:
                         for proteccion in protecciones:
                             if proteccion['numero_serie'] == lote_linea:
                                 price_protection =  proteccion['soi'] + proteccion['proteccion_precio'] + proteccion['fondoscop']
-                    else:
-                        price_protection = 0
                             
                     costo_compra = 0
                     stock_move_line_id = self.env['stock.move.line'].search([('lot_id', '=', lote_linea), ('move_id.picking_id.purchase_id', '!=', None), ('move_id.product_id', '=', linea.product_id.id)])
