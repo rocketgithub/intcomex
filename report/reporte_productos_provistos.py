@@ -68,6 +68,12 @@ class ProductosProvistos(models.TransientModel):
                     lote_linea = ''
                     if linea.sale_line_ids and linea.sale_line_ids.move_ids[0] and linea.sale_line_ids.move_ids[0].move_line_ids[0].lot_id:
                         lote_linea = linea.sale_line_ids.move_ids[0].move_line_ids[0].lot_id.name
+                        
+                    if factura.pos_order_ids:
+                        for pos_line in factura.pos_order_ids[0].lines:
+                            if pos_line.pack_lot_ids and pos_line.product_id.id == linea.product_id.id and pos_line.qty == linea.quantity and pos_line.price_unit == linea.price_unit:
+                                lote_linea = pos_line.pack_lot_ids[0].lot_name
+                    
                     protecciones = linea.obtener_proteccion()
                     soi = 0
                     pp = 0
