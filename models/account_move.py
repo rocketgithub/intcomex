@@ -53,12 +53,20 @@ class AccountMoveLine(models.Model):
                         precios = {'numero_serie': lote.name, 'proteccion_precio': 0, 'soi': 0, 'fondoscop': 0}
                         # Buscamos si existe alguna linea con numero de serie de tipo proteccion de precio o fondoscop para hacer las validaciones
                         for linea_proteccion in proteccion_precio_ids:
-                            if lote.id == linea_proteccion.lote_id.id and linea_proteccion.tipo == 'proteccion':
-                                precios['proteccion_precio'] += linea_proteccion.precio
-                            elif lote.id == linea_proteccion.lote_id.id and linea_proteccion.tipo == 'fondo':
-                                precios['fondoscop'] += linea_proteccion.precio
+                            if linea_proteccion.lote_id:
+                                if lote.id == linea_proteccion.lote_id.id and linea_proteccion.tipo == 'proteccion':
+                                    precios['proteccion_precio'] += linea_proteccion.precio
+                                elif lote.id == linea_proteccion.lote_id.id and linea_proteccion.tipo == 'fondo':
+                                    precios['fondoscop'] += linea_proteccion.precio
+                                else:
+                                    continue
                             else:
-                                continue
+                                if linea_proteccion.tipo == 'proteccion':
+                                    precios['proteccion_precio'] += linea_proteccion.precio
+                                elif linea_proteccion.tipo == 'fondo':
+                                    precios['fondoscop'] += linea_proteccion.precio
+                                else:
+                                    continue
 
                         for linea_proteccion in proteccion_precio_ids:
                             if  lote.id == linea_proteccion.lote_id.id and (linea_proteccion.tipo == 'soi' and (precios['proteccion_precio'] > 0 or precios['fondoscop'] > 0)):
