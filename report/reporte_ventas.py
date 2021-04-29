@@ -84,6 +84,10 @@ class ReporteVentas(models.TransientModel):
                         linea_compra = self.env['purchase.order.line'].search([('order_id.id', '=', stock_move_line_id[0].move_id.picking_id.purchase_id.id), ('product_id', '=', linea.product_id.id)])
                         if linea_compra:
                             costo_compra = linea_compra[0].price_unit
+                    
+                    precio_venta = linea.price_unit
+                    if factura.type == 'out_refund':
+                        precio_venta = precio_venta * -1
                             
                     hoja.write(y, 0, linea.product_id.default_code)
                     hoja.write(y, 1, linea.product_id.name)
@@ -95,7 +99,7 @@ class ReporteVentas(models.TransientModel):
                     hoja.write(y, 7, linea.product_id.categ_id.name)
                     hoja.write(y, 8, lote_linea)
                     hoja.write(y, 9, costo_compra)
-                    hoja.write(y, 10, linea.price_unit)
+                    hoja.write(y, 10, precio_venta)
                     hoja.write(y, 11, (linea.price_unit - costo_compra) / (linea.price_unit or 1), porcentaje)
                     hoja.write(y, 12, price_protection)             
                     
