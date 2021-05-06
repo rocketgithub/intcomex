@@ -48,24 +48,24 @@ class ReporteIngresos(models.TransientModel):
             hoja.write(0, 8, 'Documento de origen', bold)
                 
             y = 0       
-            facturas = self.env['account.move'].search([('type', 'in', ['in_invoice']), ('state', '=', 'posted'), ('date', '>=', w['fecha_desde']), ('date', '<=', w['fecha_hasta'])])
+            pedidos = self.env['purchase.order'].search([('state', 'in', ['purchase', 'done']), ('date_order', '>=', w['fecha_desde']), ('date_order', '<=', w['fecha_hasta'])])
             
-            for factura in facturas:
-                if factura.invoice_origin:
-                    for ln in factura.invoice_line_ids:
-                        stock_move_lns = self.env['stock.move.line'].search([('origin', '=', factura.invoice_origin), ('product_id', '=', ln.product_id.id)])
-                        for linea in stock_move_lns:
-                            for i in range(int(linea.qty_done)):
-                                y += 1
-                                hoja.write(y, 0, linea.product_id.default_code)
-                                hoja.write(y, 1, linea.product_id.name)
-                                hoja.write(y, 2, linea.move_id.warehouse_id.name)
-                                hoja.write(y, 3, linea.product_id.marca)
-                                hoja.write(y, 4, linea.product_id.categ_id.name)
-                                hoja.write(y, 5, linea.date, date_format)
-                                hoja.write(y, 6, ln.price_unit)
-                                hoja.write(y, 7, linea.lot_id.name)
-                                hoja.write(y, 8, linea.origin)
+            for pedido in pedidos:
+                if pedido.picking_count:
+                    for linea in pedido.order_line:
+                        for ln in linea.move_ids:
+                            if ln.state == 'done':
+                                for stock_move_ln in ln.move_line_ids:
+                                    y += 1
+                                    hoja.write(y, 0, linea.product_id.default_code)
+                                    hoja.write(y, 1, linea.product_id.name)
+                                    hoja.write(y, 2, ln.warehouse_id.name)
+                                    hoja.write(y, 3, linea.product_id.marca)
+                                    hoja.write(y, 4, linea.product_id.categ_id.name)
+                                    hoja.write(y, 5, ln.date, date_format)
+                                    hoja.write(y, 6, linea.price_unit)
+                                    hoja.write(y, 7, stock_move_ln.lot_id.name)
+                                    hoja.write(y, 8, pedido.name)
             
             libro.close()
             datos = base64.b64encode(f.getvalue())
